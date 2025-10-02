@@ -3,9 +3,14 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 from PIL import Image
+import os
 
-api_key = st.secrets["BINANCE_API_KEY"]
-api_secret = st.secrets["BINANCE_API_SECRET"]
+from dotenv import load_dotenv
+
+load_dotenv()
+
+api_key = os.getenv("BINANCE_API_KEY")
+api_secret = os.getenv("BINANCE_API_SECRET")
 
 client = Client(api_key, api_secret)
 

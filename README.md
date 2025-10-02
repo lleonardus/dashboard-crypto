@@ -33,3 +33,4 @@ $ streamlit run app.py
 - [pandas](https://pandas.pydata.org/docs/getting_started/install.html)
 - [plotly](https://plotly.com/python/getting-started/)
 - [Pillow](https://pillow.readthedocs.io/en/stable/installation/basic-installation.html)
+- [python-dotenv](https://pypi.org/project/python-dotenv/)
