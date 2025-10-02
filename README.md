@@ -1,3 +1,9 @@
+# Dashboard Crypto
+
+⚠️ Em construção...
+
+![aaa](./docs/images/app.png)
+
 ## 💿 Como rodar na sua máquina (Linux)
 
 ### 📝 Pré-requisitos:
