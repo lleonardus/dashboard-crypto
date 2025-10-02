@@ -4,7 +4,10 @@ import plotly.graph_objects as go
 import streamlit as st
 from PIL import Image
 
-client = Client()
+api_key = st.secrets["BINANCE_API_KEY"]
+api_secret = st.secrets["BINANCE_API_SECRET"]
+
+client = Client(api_key, api_secret)
 
 
 @st.cache_data(ttl=60)
@@ -47,7 +50,7 @@ st.set_page_config(page_title="Crypto Estácio", page_icon="🪙", layout="wide"
 
 st.sidebar.title("Crypto Estácio")
 image_sidebar = Image.open("./images/estacio.png")
-st.sidebar.image(image=image_sidebar, use_container_width=True)
+st.sidebar.image(image=image_sidebar, width="stretch")
 
 symbol = st.sidebar.text_input(label="Símbolo", value="BTCUSDT")
 interval = st.sidebar.selectbox(
