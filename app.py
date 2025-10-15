@@ -179,31 +179,31 @@ st.header("Principais Moedas")
 
 market_df = get_market_data(TOP_10_COINS)
 
-cols = st.columns((0.5, 1.5, 1.5, 1.5, 1.5, 2))
-
-headers = ["#", "Ativo", "Preço", "Variação (24h)", "Máxima (24h)", "Volume (USDT)"]
-for col, header in zip(cols, headers):
-    col.markdown(f"**{header}**")
-
 for index, row in market_df.iterrows():
-    cols = st.columns((0.5, 1.5, 1.5, 1.5, 1.5, 2))
+    with st.expander(f"**{index + 1}. {row['Símbolo']}**"):
+        col1, col2, col3 = st.columns(3)
 
-    cols[0].write(f"{index + 1}")
+        if col1.button("Ver Gráfico 📈", key=f"btn_{row['Símbolo']}"):
+            st.session_state.selected_symbol = row["Símbolo"]
+            st.session_state.selected_interval = Client.KLINE_INTERVAL_1HOUR
+            st.session_state.selected_date = "1 day ago UTC"
+            st.rerun()
 
-    if cols[1].button(row["Símbolo"], key=f"btn_{row['Símbolo']}"):
-        st.session_state.selected_symbol = row["Símbolo"]
-        st.session_state.selected_interval = Client.KLINE_INTERVAL_1HOUR
-        st.session_state.selected_date = "1 day ago UTC"
-        st.rerun()
+        col2.metric(label="Preço (USDT)", value=f"${row['Preço (USDT)']:,.4f}")
 
-    cols[2].write(f"${row['Preço (USDT)']:,.4f}")
+        col3.metric(
+            label="Variação (24h)",
+            value=f"{row['Variação % (24h)']:+.2f}%",
+            delta=(
+                f"{row['Variação % (24h)']:+.2f}%"
+                if row["Variação % (24h)"] < 0
+                else None
+            ),
+        )
 
-    change = row["Variação % (24h)"]
-    color = "green" if change >= 0 else "red"
-    cols[3].markdown(
-        f"<span style='color:{color};'>{change:+.2f}%</span>", unsafe_allow_html=True
-    )
+        st.markdown("---")
 
-    cols[4].write(f"${row['Máxima (24h)']:,.4f}")
-
-    cols[5].write(f"${row['Volume (USDT)']:,.2f}")
+        col_max, col_min, col_vol = st.columns(3)
+        col_max.markdown(f"**Máxima (24h):**\n${row['Máxima (24h)']:,.4f}")
+        col_min.markdown(f"**Mínima (24h):**\n${row['Mínima (24h)']:,.4f}")
+        col_vol.markdown(f"**Volume (USDT):**\n${row['Volume (USDT)']:,.2f}")
