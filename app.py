@@ -14,24 +14,27 @@ api_secret = os.getenv("BINANCE_API_SECRET")
 client = Client(api_key, api_secret)
 
 TOP_10_COINS = [
-    "BTCUSDT",
-    "ETHUSDT",
-    "BNBUSDT",
-    "SOLUSDT",
-    "XRPUSDT",
-    "DOGEUSDT",
-    "ADAUSDT",
-    "SHIBUSDT",
-    "AVAXUSDT",
-    "DOTUSDT",
+    "BTC",
+    "ETH",
+    "BNB",
+    "SOL",
+    "XRP",
+    "DOGE",
+    "ADA",
+    "SHIB",
+    "AVAX",
+    "DOT",
 ]
 
 
 @st.cache_data(ttl=30)
 def get_market_data(symbols: list[str]):
     all_tickers = client.get_ticker()
+    symbols_with_usdt = list(map(lambda coin: f"{coin}USDT", symbols))
 
-    market_data = [ticker for ticker in all_tickers if ticker["symbol"] in symbols]
+    market_data = [
+        ticker for ticker in all_tickers if ticker["symbol"] in symbols_with_usdt
+    ]
 
     df = pd.DataFrame(market_data)
 
@@ -45,6 +48,7 @@ def get_market_data(symbols: list[str]):
             "quoteVolume",
         ]
     ]
+
     df.columns = [
         "Símbolo",
         "Preço (USDT)",
@@ -61,13 +65,15 @@ def get_market_data(symbols: list[str]):
         "Mínima (24h)",
         "Volume (USDT)",
     ]
+
     df[numeric_cols] = df[numeric_cols].apply(pd.to_numeric, errors="coerce")
+    df["Símbolo"] = df["Símbolo"].apply(lambda x: x.split("USDT")[0])
 
     return df
 
 
 if "selected_symbol" not in st.session_state:
-    st.session_state.selected_symbol = "BTCUSDT"
+    st.session_state.selected_symbol = "BTC"
 if "selected_interval" not in st.session_state:
     st.session_state.selected_interval = Client.KLINE_INTERVAL_1HOUR
 if "selected_date" not in st.session_state:
@@ -76,7 +82,7 @@ if "selected_date" not in st.session_state:
 
 @st.cache_data(ttl=60)
 def get_historical_klines(symbol, interval, start_str):
-    candles = client.get_historical_klines(symbol, interval, start_str)
+    candles = client.get_historical_klines(f"{symbol}USDT", interval, start_str)
 
     df = pd.DataFrame(
         candles,
