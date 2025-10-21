@@ -26,6 +26,8 @@ TOP_10_COINS = [
     "DOT",
 ]
 
+ema_periods = [21, 50, 200]
+
 
 @st.cache_data(ttl=30)
 def get_market_data(symbols: list[str]):
@@ -82,6 +84,7 @@ if "selected_date" not in st.session_state:
 
 @st.cache_data(ttl=60)
 def get_historical_klines(symbol, interval, start_str):
+
     candles = client.get_historical_klines(f"{symbol}USDT", interval, start_str)
 
     df = pd.DataFrame(
@@ -104,9 +107,15 @@ def get_historical_klines(symbol, interval, start_str):
     df = df[
         ["Open Time", "Open Price", "High Price", "Low Price", "Close Price", "Volume"]
     ]
+
     df["Open Time"] = pd.to_datetime(df["Open Time"], unit="ms")
+
+    for period in ema_periods:
+        df[f"EMA_{period}"] = df["Close Price"].ewm(span=period, adjust=False).mean()
+
     df.set_index("Open Time", inplace=True)
     df = df.astype(float)
+
     return df
 
 
@@ -144,21 +153,38 @@ st.session_state.selected_date = st.sidebar.selectbox(
 
 # --- Renderização do Gráfico ---
 
+
 df = get_historical_klines(
     st.session_state.selected_symbol,
     st.session_state.selected_interval,
     st.session_state.selected_date,
 )
 
-fig = go.Figure(
+fig = go.Figure()
+
+# Gráfico de velas
+fig.add_trace(
     go.Candlestick(
         x=df.index,
         open=df["Open Price"],
         high=df["High Price"],
         low=df["Low Price"],
         close=df["Close Price"],
+        name="Candlesticks",
     )
 )
+
+# Adicionando EMAs ao gráfico
+for ema_period in ema_periods:
+    fig.add_trace(
+        go.Scatter(
+            x=df.index,
+            y=df[f"EMA_{ema_period}"],
+            mode="lines",
+            name=f"EMA {ema_period}",
+        )
+    )
+
 fig.update_layout(
     xaxis_title="Data e Hora",
     yaxis_title="Preço (USDT)",
