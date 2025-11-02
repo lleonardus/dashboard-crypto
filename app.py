@@ -245,7 +245,7 @@ st.plotly_chart(figure_or_data=fig, use_container_width=True)
 # --- Tabela de Criptomoedas ---
 
 st.markdown("---")
-st.header("Principais Moedas")
+st.header("🪙 Principais Moedas")
 
 market_df = get_market_data(TOP_10_COINS)
 
