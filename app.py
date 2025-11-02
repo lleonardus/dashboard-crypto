@@ -26,6 +26,20 @@ TOP_10_COINS = [
     "DOT",
 ]
 
+COIN_INFO = {
+    "BTC": "Bitcoin",
+    "ETH": "Ethereum",
+    "BNB": "BNB",
+    "SOL": "Solana",
+    "XRP": "XRP",
+    "DOGE": "Dogecoin",
+    "ADA": "Cardano",
+    "SHIB": "Shiba Inu",
+    "AVAX": "Avalanche",
+    "DOT": "Polkadot",
+}
+# ------------------------------------------------------------------
+
 ema_periods = [21, 50, 200]
 
 
@@ -70,6 +84,13 @@ def get_market_data(symbols: list[str]):
 
     df[numeric_cols] = df[numeric_cols].apply(pd.to_numeric, errors="coerce")
     df["Símbolo"] = df["Símbolo"].apply(lambda x: x.split("USDT")[0])
+
+    df["Nome Completo"] = df["Símbolo"].map(COIN_INFO).fillna(df["Símbolo"])
+
+    df["Icon URL"] = df["Símbolo"].apply(
+        lambda x: f"https://assets.coincap.io/assets/icons/{x.lower()}@2x.png"
+    )
+    # ------------------------------------------------------------------
 
     return df
 
@@ -126,9 +147,17 @@ st.sidebar.title("Crypto Estácio")
 image_sidebar = Image.open("./images/estacio.png")
 st.sidebar.image(image=image_sidebar)
 
+try:
+    default_symbol_index = TOP_10_COINS.index(st.session_state.selected_symbol)
+except ValueError:
+    default_symbol_index = 0
+
 st.session_state.selected_symbol = st.sidebar.selectbox(
-    label="Símbolo", options=TOP_10_COINS
+    label="Símbolo",
+    options=TOP_10_COINS,
+    index=default_symbol_index,
 )
+
 st.session_state.selected_interval = st.sidebar.selectbox(
     label="Intervalo de Tempo",
     options=[
@@ -191,10 +220,25 @@ fig.update_layout(
     xaxis_rangeslider_visible=False,
 )
 
-st.markdown(
-    f"<h1>{st.session_state.selected_symbol.split('USDT')[0]} em relação ao dólar</h1>",
-    unsafe_allow_html=True,
+selected_symbol_str = st.session_state.selected_symbol
+coin_full_name = COIN_INFO.get(selected_symbol_str, selected_symbol_str)
+
+selected_coin_icon_url = (
+    f"https://assets.coincap.io/assets/icons/{selected_symbol_str.lower()}@2x.png"
 )
+img_width = 55
+img_margin_right = 10
+
+title_html = f"""
+<div style="display: flex; align-items: center;">
+    <img src="{selected_coin_icon_url}" width="{img_width}" style="margin-right: {img_margin_right}px;">
+    <div style="font-size: 2.5em; font-weight: 600; margin: 0;">
+        {coin_full_name} ({selected_symbol_str})
+    </div>
+</div>
+"""
+
+st.markdown(title_html, unsafe_allow_html=True)
 
 st.plotly_chart(figure_or_data=fig, use_container_width=True)
 
@@ -206,26 +250,38 @@ st.header("Principais Moedas")
 market_df = get_market_data(TOP_10_COINS)
 
 for index, row in market_df.iterrows():
-    with st.expander(f"**{index + 1}. {row['Símbolo']}**"):
-        col1, col2, col3 = st.columns(3)
+    icon_url = row["Icon URL"]
+    full_name = row["Nome Completo"]
+    symbol = row["Símbolo"]
 
-        if col1.button("Ver Gráfico 📈", key=f"btn_{row['Símbolo']}"):
-            st.session_state.selected_symbol = row["Símbolo"]
-            st.session_state.selected_interval = Client.KLINE_INTERVAL_1HOUR
-            st.session_state.selected_date = "1 day ago UTC"
-            st.rerun()
+    expander_label = f"**{index + 1}. {full_name}** `{symbol}`"
 
-        col2.metric(label="Preço (USDT)", value=f"${row['Preço (USDT)']:,.4f}")
+    with st.expander(label=expander_label):
+        col_img_inside, col1, col2, col3 = st.columns([0.5, 1.5, 1.5, 1.5])
 
-        col3.metric(
-            label="Variação (24h)",
-            value=f"{row['Variação % (24h)']:+.2f}%",
-            delta=(
-                f"{row['Variação % (24h)']:+.2f}%"
-                if row["Variação % (24h)"] < 0
-                else None
-            ),
-        )
+        with col_img_inside:
+            st.image(icon_url, width=40)
+
+        with col1:
+            if st.button("Ver Gráfico 📈", key=f"btn_{symbol}"):
+                st.session_state.selected_symbol = symbol
+                st.session_state.selected_interval = Client.KLINE_INTERVAL_1HOUR
+                st.session_state.selected_date = "1 day ago UTC"
+                st.rerun()
+
+        with col2:
+            st.metric(label="Preço (USDT)", value=f"${row['Preço (USDT)']:,.4f}")
+
+        with col3:
+            st.metric(
+                label="Variação (24h)",
+                value=f"{row['Variação % (24h)']:+.2f}%",
+                delta=(
+                    f"{row['Variação % (24h)']:+.2f}%"
+                    if row["Variação % (24h)"] < 0
+                    else None
+                ),
+            )
 
         st.markdown("---")
 
