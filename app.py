@@ -40,6 +40,27 @@ COIN_INFO = {
 }
 # ------------------------------------------------------------------
 
+DATE_OPTIONS_VALUES = [
+    "1 day ago UTC",
+    "5 days ago UTC",
+    "1 month ago UTC",
+    "6 months ago UTC",
+    "1 year ago UTC",
+]
+
+DATE_OPTIONS_DISPLAY = {
+    "1 day ago UTC": "Último dia",
+    "5 days ago UTC": "Últimos 5 dias",
+    "1 month ago UTC": "Último mês",
+    "6 months ago UTC": "Últimos 6 meses",
+    "1 year ago UTC": "Último ano",
+}
+
+
+def format_date_option(option_value):
+    return DATE_OPTIONS_DISPLAY.get(option_value, option_value)
+
+
 ema_periods = [21, 50, 200]
 
 
@@ -171,13 +192,8 @@ st.session_state.selected_interval = st.sidebar.selectbox(
 )
 st.session_state.selected_date = st.sidebar.selectbox(
     label="Período de Análise",
-    options=[
-        "1 day ago UTC",
-        "5 days ago UTC",
-        "1 month ago UTC",
-        "6 months ago UTC",
-        "1 year ago UTC",
-    ],
+    options=DATE_OPTIONS_VALUES,
+    format_func=format_date_option,
 )
 
 # --- Renderização do Gráfico ---
