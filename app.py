@@ -126,8 +126,8 @@ st.sidebar.title("Crypto Estácio")
 image_sidebar = Image.open("./images/estacio.png")
 st.sidebar.image(image=image_sidebar)
 
-st.session_state.selected_symbol = st.sidebar.text_input(
-    label="Símbolo", value=st.session_state.selected_symbol
+st.session_state.selected_symbol = st.sidebar.selectbox(
+    label="Símbolo", options=TOP_10_COINS
 )
 st.session_state.selected_interval = st.sidebar.selectbox(
     label="Intervalo de Tempo",
